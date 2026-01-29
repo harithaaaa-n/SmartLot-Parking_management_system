@@ -59,10 +59,7 @@ const EnterParking = () => {
       } else if (errorMessage.includes("invalid vehicle number")) {
         showError("❌ Invalid vehicle number format. Please use format: TN01AB1234");
       } else {
-        // Debugging Aid: Show the URL being used
-        import("@/api/config").then(({ API_BASE_URL }) => {
-          showError(`Entry Failed: ${error.message} (API: ${API_BASE_URL})`);
-        });
+        showError(`Entry Failed: ${error.message}`);
       }
 
       setIsAnimating(false);
