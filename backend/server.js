@@ -19,9 +19,24 @@ const app = express();
 app.use(express.json());
 
 // CORS configuration (IMPORTANT for frontend integration)
+// CORS configuration
 app.use(
   cors({
-    origin: "*", // allow frontend (DIODE / Antigravity)
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      // Allow localhost (development)
+      if (origin.includes("localhost")) return callback(null, true);
+
+      // Allow Vercel deployments (production)
+      if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+      // Optional: Add specific custom domains if needed
+      // if (origin === "https://mydomain.com") return callback(null, true);
+
+      callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
