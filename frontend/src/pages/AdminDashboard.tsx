@@ -14,9 +14,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { fetchSlots, fetchActiveSessions, fetchDashboardStats } from "@/api/api";
 
 import { useNavigate } from "react-router-dom";
+import QRCode from "react-qr-code";
+import { useState } from "react";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [qrType, setQrType] = useState<'entry' | 'exit' | null>(null);
+
+  const getQrUrl = (type: 'entry' | 'exit') => {
+    const baseUrl = window.location.origin;
+    if (type === 'entry') return import.meta.env.VITE_ENTRY_QR_URL || `${baseUrl}/`; // Entry is at root
+    if (type === 'exit') return import.meta.env.VITE_EXIT_QR_URL || `${baseUrl}/exit`;
+    return baseUrl;
+  };
   // 1. Live Slot Status
   const { data: slots = [], isLoading: isLoadingSlots } = useQuery({
     queryKey: ['adminSlots'],
@@ -191,7 +201,7 @@ const AdminDashboard = () => {
                 <Button
                   variant="outline"
                   className="w-full justify-start h-auto py-4 bg-background hover:bg-muted border-primary/20 hover:border-primary/50 group"
-                  onClick={() => window.open('/', '_blank')}
+                  onClick={() => setQrType('entry')}
                 >
                   <div className="flex items-center">
                     <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
@@ -199,7 +209,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className="text-left">
                       <span className="block font-bold text-foreground">Entry Terminal</span>
-                      <span className="text-xs text-muted-foreground">Launch user-facing kiosk</span>
+                      <span className="text-xs text-muted-foreground">Show QR / Launch Kiosk</span>
                     </div>
                   </div>
                 </Button>
@@ -207,7 +217,7 @@ const AdminDashboard = () => {
                 <Button
                   variant="outline"
                   className="w-full justify-start h-auto py-4 bg-background hover:bg-muted border-green-500/20 hover:border-green-500/50 group"
-                  onClick={() => window.open('/exit', '_blank')}
+                  onClick={() => setQrType('exit')}
                 >
                   <div className="flex items-center">
                     <div className="h-10 w-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
@@ -215,7 +225,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className="text-left">
                       <span className="block font-bold text-foreground">Exit Terminal</span>
-                      <span className="text-xs text-muted-foreground">Launch payment kiosk</span>
+                      <span className="text-xs text-muted-foreground">Show QR / Launch Kiosk</span>
                     </div>
                   </div>
                 </Button>
@@ -231,9 +241,48 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-      </main>
-      <Footer />
+        {/* QR Code Dialog */}
+        <Dialog open={!!qrType} onOpenChange={(open) => !open && setQrType(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <QrCode className="h-5 w-5 text-primary" />
+                {qrType === 'entry' ? 'Entry Terminal QR' : 'Exit Terminal QR'}
+              </DialogTitle>
+              <CardDescription>
+                Scan this code to launch the {qrType} terminal on a mobile device or kiosk.
+              </CardDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center p-6 space-y-6">
+              <div className="p-4 bg-white rounded-xl shadow-lg border border-border">
+                {qrType && (
+                  <QRCode
+                    value={getQrUrl(qrType)}
+                    size={200}
+                    level="H"
+                  />
+                )}
+              </div>
+              <div className="w-full space-y-2 text-center">
+                <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded break-all">
+                  {qrType && getQrUrl(qrType)}
+                </p>
+                <Button
+                  className="w-full"
+                  onClick={() => qrType && window.open(getQrUrl(qrType), '_blank')}
+                >
+                  <Zap className="mr-2 h-4 w-4" /> Open in New Tab
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
     </div>
+        </div >
+
+      </main >
+  <Footer />
+    </div >
   );
 };
 

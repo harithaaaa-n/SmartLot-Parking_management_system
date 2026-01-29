@@ -13,11 +13,14 @@ const client = axios.create({
 client.interceptors.response.use(
     (response) => response,
     (error) => {
-        // You can handle global errors here (e.g., 401 Unauthorized)
-        // For now, we just reject the promise so the caller can handle it
-        const message = error.response?.data?.message || error.message || "An unexpected error occurred";
-        // Attach the formatted message to the error object for easier access
-        error.message = message;
+        // Handle "Network Error" specifically (CORS or Server Down)
+        if (error.message === "Network Error" && !error.response) {
+            error.message = `Network Error full info: Target: ${API_BASE_URL}`;
+        } else {
+            const message = error.response?.data?.message || error.message || "An unexpected error occurred";
+            error.message = message;
+        }
+
         return Promise.reject(error);
     }
 );

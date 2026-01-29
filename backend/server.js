@@ -16,10 +16,8 @@ const app = express();
 // =====================
 // Middleware
 // =====================
-app.use(express.json());
 
-// CORS configuration (IMPORTANT for frontend integration)
-// CORS configuration
+// CORS configuration (MUST be first)
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -29,18 +27,19 @@ app.use(
       // Allow localhost (development)
       if (origin.includes("localhost")) return callback(null, true);
 
-      // Allow Vercel deployments (production)
-      if (origin.endsWith(".vercel.app")) return callback(null, true);
+      // Allow Vercel deployments (production) - "includes" is safer/more permissive for subdomains
+      if (origin.includes("vercel.app")) return callback(null, true);
 
-      // Optional: Add specific custom domains if needed
-      // if (origin === "https://mydomain.com") return callback(null, true);
-
+      // Log blocked origins for debugging (visible in Render logs)
+      console.log("Blocked CORS Origin:", origin);
       callback(new Error("Not allowed by CORS"));
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
+
+app.use(express.json());
 
 // =====================
 // Connect to MongoDB

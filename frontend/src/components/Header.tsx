@@ -71,12 +71,12 @@ const Header = () => {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500"></div>
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo and Title */}
-        <Link to="/" className="flex items-center space-x-2 font-bold text-lg group">
-          <div className="relative">
-            <div className="absolute -inset-1 rounded-full bg-indigo-500/20 group-hover:bg-indigo-500/40 blur transition duration-500"></div>
-            <img src="/car-animated.gif" alt="Logo" className="relative h-9 w-auto rounded-full object-cover ring-2 ring-white dark:ring-slate-800" />
-          </div>
-          <span className="text-xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">SmartLot</span>
+        <Link to="/" className="flex items-center">
+          <img
+            src="/SMART%20lot.gif"
+            alt="SmartLot"
+            className="h-16 w-auto object-contain"
+          />
         </Link>
 
         {/* Desktop Navigation and CTA */}
