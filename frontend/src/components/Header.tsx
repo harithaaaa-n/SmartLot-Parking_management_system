@@ -71,11 +71,11 @@ const Header = () => {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500"></div>
       <div className="container flex h-24 items-center justify-between px-4 md:px-6">
         {/* Logo and Title */}
-        <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center py-2">
           <img
             src="/SMART%20lot.gif"
             alt="SmartLot"
-            className="h-32 w-auto object-contain scale-150 relative z-10"
+            className="h-20 w-auto object-contain"
           />
         </Link>
 
