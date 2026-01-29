@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, History as HistoryIcon, Download, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { API_BASE_URL } from "@/api/config";
-import axios from "axios";
+import client from "@/api/client"; // Import centralized client
 import { toast } from "sonner"; // Using simpler toast
 
 interface Ticket {
@@ -60,7 +60,8 @@ const History = () => {
     const { data: tickets, isLoading, error } = useQuery<Ticket[]>({
         queryKey: ['userHistory'],
         queryFn: async () => {
-            const response = await axios.get(`${API_BASE_URL}/entry/user-history`);
+            // Use the centralized client
+            const response = await client.get('/entry/user-history');
             return response.data;
         },
         refetchInterval: 30000

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./config";
+import client from "./client";
 
 export interface Slot {
     _id: string;
@@ -45,136 +45,70 @@ export interface DashboardStats {
 }
 
 export const fetchSlots = async (): Promise<Slot[]> => {
-    const response = await fetch(`${API_BASE_URL}/slot/all`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch slots");
-    }
-    const data = await response.json();
+    const response = await client.get('/slot/all');
     // Map backend "Available"/"Occupied" to frontend lowercase
-    return data.map((slot: any) => ({
+    return response.data.map((slot: any) => ({
         ...slot,
         status: slot.status.toLowerCase()
     }));
 };
 
 export const createSlot = async (slotNumber: string): Promise<any> => {
-    const response = await fetch(`${API_BASE_URL}/slot/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slotNumber, status: "Available" }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to create slot");
-    return data;
+    const response = await client.post('/slot/create', { slotNumber, status: "Available" });
+    return response.data;
 };
 
 export const updateSlotStatus = async (slotNumber: string, status: string): Promise<any> => {
-    const response = await fetch(`${API_BASE_URL}/slot/update/${slotNumber}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to update slot");
-    return data;
+    const response = await client.put(`/slot/update/${slotNumber}`, { status });
+    return response.data;
 };
 
 export const deleteSlot = async (slotNumber: string): Promise<any> => {
-    const response = await fetch(`${API_BASE_URL}/slot/delete/${slotNumber}`, {
-        method: "DELETE",
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to delete slot");
-    return data;
+    const response = await client.delete(`/slot/delete/${slotNumber}`);
+    return response.data;
 };
 
 export const enterVehicle = async (vehicleNumber: string): Promise<EntryResponse> => {
-    const response = await fetch(`${API_BASE_URL}/entry/enter`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ vehicleNumber }),
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || "Entry failed");
-    }
-    return data;
+    const response = await client.post('/entry/enter', { vehicleNumber });
+    return response.data;
 };
 
 export const calculateExit = async (identifier: string): Promise<ExitPreview> => {
-    const response = await fetch(`${API_BASE_URL}/entry/calculate/${identifier}`);
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || "Calculation failed");
-    }
-    return data;
+    const response = await client.get(`/entry/calculate/${identifier}`);
+    return response.data;
 };
 
 export const exitVehicle = async (entryId: string, actualSlotNumber?: string, paymentMode?: string): Promise<any> => {
-    const response = await fetch(`${API_BASE_URL}/entry/exit/${entryId}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ actualSlotNumber: actualSlotNumber || undefined, paymentMode })
+    const response = await client.put(`/entry/exit/${entryId}`, {
+        actualSlotNumber: actualSlotNumber || undefined,
+        paymentMode
     });
-
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || "Exit failed");
-    }
-    return data;
+    return response.data;
 };
 
 export const fetchActiveSessions = async (): Promise<any[]> => {
-    const response = await fetch(`${API_BASE_URL}/entry/active`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch active sessions");
-    }
-    return await response.json();
+    const response = await client.get('/entry/active');
+    return response.data;
 };
 
 export const fetchParkingHistory = async (): Promise<any[]> => {
-    const response = await fetch(`${API_BASE_URL}/entry/history`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch parking history");
-    }
-    return await response.json();
+    const response = await client.get('/entry/history');
+    return response.data;
 };
 
 export const fetchDashboardStats = async (): Promise<DashboardStats> => {
-    const response = await fetch(`${API_BASE_URL}/entry/stats`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch dashboard stats");
-    }
-    return await response.json();
+    const response = await client.get('/entry/stats');
+    return response.data;
 };
 
 
 export const fetchDetailedAnalytics = async (): Promise<any> => {
-    const response = await fetch(`${API_BASE_URL}/entry/analytics`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch detailed analytics");
-    }
-    return await response.json();
+    const response = await client.get('/entry/analytics');
+    return response.data;
 };
 
 export const submitFeedback = async (ticketNumber: string, rating: number, feedback: string): Promise<any> => {
-    const response = await fetch(`${API_BASE_URL}/entry/feedback`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ticketNumber, rating, feedback }),
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || "Feedback submission failed");
-    }
-    return data;
+    const response = await client.post('/entry/feedback', { ticketNumber, rating, feedback });
+    return response.data;
 };
 
