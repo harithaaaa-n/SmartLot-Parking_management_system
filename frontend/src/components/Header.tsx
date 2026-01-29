@@ -69,13 +69,13 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl supports-[backdrop-filter]:bg-white/90 shadow-sm transition-all duration-300">
       {/* Professional Top Highlight Line */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500"></div>
-      <div className="container flex h-24 items-center justify-between px-4 md:px-6">
+      <div className="container flex h-auto py-3 items-center justify-between px-4 md:px-6">
         {/* Logo and Title */}
-        <Link to="/" className="flex items-center py-2">
+        <Link to="/" className="flex items-center">
           <img
             src="/SMART%20lot.gif"
             alt="SmartLot"
-            className="h-20 w-auto object-contain"
+            className="h-24 w-auto object-contain"
           />
         </Link>
 
