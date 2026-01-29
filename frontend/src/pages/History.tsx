@@ -23,6 +23,33 @@ interface Ticket {
     amount?: number;
 }
 
+// Helper Component for Live Timer
+const LiveTimer = ({ entryTime }: { entryTime: string }) => {
+    const [duration, setDuration] = useState("");
+
+    useEffect(() => {
+        const updateTimer = () => {
+            const start = new Date(entryTime).getTime();
+            const now = new Date().getTime();
+            const diff = now - start;
+
+            if (diff < 0) return;
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setDuration(`${hours}h ${minutes}m ${seconds}s`);
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    }, [entryTime]);
+
+    return <span className="font-mono text-green-600 font-bold animate-pulse">{duration}</span>;
+};
+
 const History = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
@@ -67,7 +94,7 @@ const History = () => {
             return;
         }
 
-        const headers = ["Ticket ID", "Vehicle Number", "Slot", "Entry Time", "Exit Time", "Status", "Amount"];
+        const headers = ["Ticket ID", "Vehicle Number", "Slot", "Entry Time", "Exit Time", "Status", "Bill Amount"];
         const rows = filteredTickets.map(t => [
             t.ticketNumber,
             t.vehicleNumber,
@@ -146,7 +173,8 @@ const History = () => {
                                                 <TableHead>Vehicle</TableHead>
                                                 <TableHead>Slot</TableHead>
                                                 <TableHead>Entry Time</TableHead>
-                                                <TableHead>Exit Time</TableHead>
+                                                <TableHead>Exit Time / Duration</TableHead>
+                                                <TableHead>Bill</TableHead>
                                                 <TableHead className="text-right">Status</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -163,7 +191,14 @@ const History = () => {
                                                             {new Date(ticket.entryTime).toLocaleString()}
                                                         </TableCell>
                                                         <TableCell className="text-muted-foreground text-sm">
-                                                            {ticket.exitTime ? new Date(ticket.exitTime).toLocaleString() : "-"}
+                                                            {ticket.status === 'Active' ? (
+                                                                <LiveTimer entryTime={ticket.entryTime} />
+                                                            ) : (
+                                                                ticket.exitTime ? new Date(ticket.exitTime).toLocaleString() : "-"
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell className="font-medium text-sm">
+                                                            {ticket.amount ? `₹${ticket.amount}` : "-"}
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             <Badge variant={ticket.status === 'Active' ? "default" : "secondary"}
@@ -175,7 +210,7 @@ const History = () => {
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                                                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                                                         No records found.
                                                     </TableCell>
                                                 </TableRow>
