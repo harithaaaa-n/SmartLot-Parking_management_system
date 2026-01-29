@@ -22,10 +22,10 @@ const AdminDashboard = () => {
   const [qrType, setQrType] = useState<'entry' | 'exit' | null>(null);
 
   const getQrUrl = (type: 'entry' | 'exit') => {
-    const baseUrl = window.location.origin;
-    if (type === 'entry') return import.meta.env.VITE_ENTRY_QR_URL || `${baseUrl}/`; // Entry is at root
-    if (type === 'exit') return import.meta.env.VITE_EXIT_QR_URL || `${baseUrl}/exit`;
-    return baseUrl;
+    // Hardcoded production URLs as requested
+    if (type === 'entry') return "https://smart-lot-parking-management-system-amber.vercel.app/entry";
+    if (type === 'exit') return "https://smart-lot-parking-management-system-amber.vercel.app/exit";
+    return window.location.origin;
   };
   // 1. Live Slot Status
   const { data: slots = [], isLoading: isLoadingSlots } = useQuery({
@@ -277,11 +277,10 @@ const AdminDashboard = () => {
             </div>
           </DialogContent>
         </Dialog>
-    </div>
-        </div >
+
 
       </main >
-  <Footer />
+      <Footer />
     </div >
   );
 };
