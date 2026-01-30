@@ -23,14 +23,20 @@ const vehicleEntry = async (req, res) => {
     }
 
     // CHECK: duplicate entry
+    // CHECK: duplicate entry in Entry OR Ticket collection
     const existingEntry = await Entry.findOne({
-      vehicleNumber: cleanVehicleNumber, // Exact match on sanitized data
+      vehicleNumber: cleanVehicleNumber,
       exitTime: { $exists: false }
     });
 
-    if (existingEntry) {
+    const existingTicket = await Ticket.findOne({
+      vehicleNumber: cleanVehicleNumber,
+      status: "Active"
+    });
+
+    if (existingEntry || existingTicket) {
       return res.status(400).json({
-        message: `Vehicle ${cleanVehicleNumber} is already currently parked. Duplicate entry denied.`
+        message: "Vehicle already inside parking"
       });
     }
 
@@ -52,42 +58,70 @@ const vehicleEntry = async (req, res) => {
     });
 
     // Generate Ticket ID: DDMMYYYY-XXXX (Sequential)
+    // RETRY LOGIC Loop to prevent Duplicate Keys
     const now = new Date();
     const dd = String(now.getDate()).padStart(2, '0');
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const yyyy = now.getFullYear();
+    const datePrefix = `${dd}${mm}${yyyy}`;
 
-    // Calculate sequence based on today's tickets
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    let ticket;
+    let attempts = 0;
+    while (attempts < 3) { // Retry up to 3 times
+      try {
+        // Find the highest sequence for TODAY using string comparison (Index friendly)
+        // matches anything starting with the prefix [datePrefix-0000 to datePrefix-9999]
+        const lastTicket = await Ticket.findOne({
+          ticketNumber: {
+            $gte: `${datePrefix}-0000`,
+            $lte: `${datePrefix}-9999`
+          }
+        }).sort({ ticketNumber: -1 });
 
-    // Find the last created ticket for today to determine the next sequence
-    const lastTicket = await Ticket.findOne({
-      entryTime: { $gte: startOfDay, $lte: endOfDay }
-    }).sort({ entryTime: -1 });
+        let nextSequence = 1;
 
-    let nextSequence = 1;
+        if (lastTicket && lastTicket.ticketNumber) {
+          const parts = lastTicket.ticketNumber.split('-');
+          if (parts.length === 2 && parts[0] === datePrefix) {
+            const lastSeq = parseInt(parts[1], 10);
+            if (!isNaN(lastSeq)) {
+              nextSequence = lastSeq + 1;
+            }
+          }
+        }
 
-    if (lastTicket && lastTicket.ticketNumber) {
-      const parts = lastTicket.ticketNumber.split('-');
-      // Check if the ticket format matches DDMMYYYY-SEQUENCE
-      if (parts.length === 2) {
-        const lastSeq = parseInt(parts[1], 10);
-        if (!isNaN(lastSeq)) {
-          nextSequence = lastSeq + 1;
+        // Add minimal random buffer if retrying to reduce collisions
+        if (attempts > 0) {
+          console.log(`[Retry] Collision detected. Incrementing sequence... (Attempt ${attempts + 1})`);
+          nextSequence += attempts;
+        }
+
+        const sequence = String(nextSequence).padStart(4, '0');
+        const ticketId = `${datePrefix}-${sequence}`;
+        console.log(`[Entry] Generating Ticket: ${ticketId} for ${cleanVehicleNumber} (Last Found: ${lastTicket?.ticketNumber})`);
+
+        // ATTEMPT CREATION
+        ticket = await Ticket.create({
+          ticketNumber: ticketId,
+          vehicleNumber: cleanVehicleNumber,
+          slotNumber: slot.slotNumber,
+          entryTime: entry.entryTime,
+          status: "Active"
+        });
+
+        // If successful, break loop
+        break;
+
+      } catch (err) {
+        if (err.code === 11000) { // catch only duplicate key errors
+          console.warn(`[WARN] Duplicate Key Error on retry ${attempts}. Retrying...`);
+          attempts++;
+          if (attempts >= 3) throw new Error("System busy, failed to generate unique ticket ID. Please try again.");
+        } else {
+          throw err; // throw other errors immediately
         }
       }
     }
-
-    const sequence = String(nextSequence).padStart(4, '0');
-    const ticketId = `${dd}${mm}${yyyy}-${sequence}`;
-
-    const ticket = await Ticket.create({
-      ticketNumber: ticketId,
-      vehicleNumber: cleanVehicleNumber,
-      slotNumber: slot.slotNumber,
-      entryTime: entry.entryTime
-    });
 
     res.status(201).json({
       message: "Vehicle parked & ticket generated",
