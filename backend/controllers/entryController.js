@@ -61,11 +61,25 @@ const vehicleEntry = async (req, res) => {
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-    const todayCount = await Ticket.countDocuments({
+    // Find the last created ticket for today to determine the next sequence
+    const lastTicket = await Ticket.findOne({
       entryTime: { $gte: startOfDay, $lte: endOfDay }
-    });
+    }).sort({ entryTime: -1 });
 
-    const sequence = String(todayCount + 1).padStart(4, '0');
+    let nextSequence = 1;
+
+    if (lastTicket && lastTicket.ticketNumber) {
+      const parts = lastTicket.ticketNumber.split('-');
+      // Check if the ticket format matches DDMMYYYY-SEQUENCE
+      if (parts.length === 2) {
+        const lastSeq = parseInt(parts[1], 10);
+        if (!isNaN(lastSeq)) {
+          nextSequence = lastSeq + 1;
+        }
+      }
+    }
+
+    const sequence = String(nextSequence).padStart(4, '0');
     const ticketId = `${dd}${mm}${yyyy}-${sequence}`;
 
     const ticket = await Ticket.create({
