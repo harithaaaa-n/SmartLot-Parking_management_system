@@ -9,7 +9,10 @@ import { BarChart } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchDashboardStats, fetchDetailedAnalytics } from "@/api/api";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download, FileText, FileSpreadsheet } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Button } from "@/components/ui/button";
 
 const AdminAnalytics = () => {
   // Fetch basic stats
@@ -27,6 +30,80 @@ const AdminAnalytics = () => {
   });
 
   const isLoading = isLoadingStats || isLoadingDetailed;
+
+  // CSV Download Handler
+  const downloadCSV = () => {
+    if (!detailedAnalytics?.hourlyData) return;
+
+    // Convert Hourly Data to CSV
+    const headers = ["Hour", "Vehicles Entered"];
+    const rows = detailedAnalytics.hourlyData.map((item: any) => [item.hour, item.vehicles]);
+
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + headers.join(",") + "\n"
+      + rows.map((e: any[]) => e.join(",")).join("\n");
+
+    // Add Summary Stats
+    if (stats) {
+      csvContent += "\n\nSUMMARY STATS\n";
+      csvContent += `Total Entries Today,${stats.todayEntries}\n`;
+      csvContent += `Total Exits Today,${stats.todayExits}\n`;
+      csvContent += `Revenue Today,${stats.todayRevenue}\n`;
+    }
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `parking_report_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // PDF Download Handler
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Smart Parking Management System", 14, 22);
+
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text(`Daily Analytics Report - ${new Date().toLocaleDateString()}`, 14, 30);
+
+    // 1. Key Metrics Table
+    if (stats) {
+      autoTable(doc, {
+        startY: 40,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Vehicles Entered Today', stats.todayEntries],
+          ['Vehicles Exited Today', stats.todayExits],
+          ['Current Active Vehicles', stats.currentActive],
+          ['Total Revenue Today', `Rs. ${stats.todayRevenue}`],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [66, 139, 202] },
+      });
+    }
+
+    // 2. Hourly Data Table
+    if (detailedAnalytics?.hourlyData) {
+      const finalY = (doc as any).lastAutoTable.finalY || 40;
+      doc.text("Hourly Entry Traffic", 14, finalY + 10);
+
+      autoTable(doc, {
+        startY: finalY + 15,
+        head: [['Time Interval', 'Vehicles Entered']],
+        body: detailedAnalytics.hourlyData.map((item: any) => [item.hour, item.vehicles]),
+        theme: 'striped',
+      });
+    }
+
+    doc.save(`smartlot_report_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -46,7 +123,19 @@ const AdminAnalytics = () => {
           ) : (
             <>
               {/* 1. Key Metrics Cards */}
-              <h3 className="text-2xl font-semibold mb-4">Key Performance Indicators</h3>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h3 className="text-2xl font-semibold">Key Performance Indicators</h3>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={downloadCSV} className="gap-2">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Export CSV
+                  </Button>
+                  <Button variant="default" size="sm" onClick={downloadPDF} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                    <FileText className="h-4 w-4" />
+                    Download PDF
+                  </Button>
+                </div>
+              </div>
               <AnalyticsCards stats={stats} detailedStats={detailedAnalytics} />
 
               <Separator className="my-10" />

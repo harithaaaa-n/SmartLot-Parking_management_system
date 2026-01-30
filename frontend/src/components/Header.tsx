@@ -50,11 +50,7 @@ const Header = () => {
         <Link to="/admin/slots" className="text-sm font-medium hover:text-primary transition-colors">
           Slots Monitoring
         </Link>
-        <Link to="/admin/analytics" className="text-sm font-medium hover:text-primary transition-colors">
-          Analytics
-        </Link>
       </nav>
-
       <div className="flex items-center space-x-3">
         <ThemeToggle className="hidden sm:flex" /> {/* Added ThemeToggle */}
         <Button size="sm" variant="destructive" onClick={logout} className="flex items-center space-x-1">
@@ -69,15 +65,25 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl supports-[backdrop-filter]:bg-white/90 shadow-sm transition-all duration-300">
       {/* Professional Top Highlight Line */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500"></div>
-      <div className="container flex h-auto py-3 items-center justify-between px-4 md:px-6">
+      <div className="container flex h-auto py-1 items-center justify-between px-4 md:px-6">
         {/* Logo and Title */}
-        <Link to="/" className="flex items-center">
-          <img
-            src="/SMART%20lot.gif"
-            alt="SmartLot"
-            className="h-24 w-auto object-contain"
-          />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-start overflow-hidden h-14 w-40">
+            <img
+              src="/SMART%20lot.gif"
+              alt="SmartLot"
+              className="h-[200%] w-auto max-w-none object-cover object-left-top -mt-3"
+            />
+          </Link>
+          <div className="hidden sm:flex flex-col justify-center">
+            <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+              SMART PARKING
+            </h1>
+            <p className="text-[0.65rem] font-bold text-slate-500 dark:text-slate-400 tracking-[0.2em] uppercase mt-0.5">
+              Management System
+            </p>
+          </div>
+        </div>
 
         {/* Desktop Navigation and CTA */}
         <div className="hidden md:flex items-center space-x-6">

@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import "@/styles/GlowingCard.css"; // Ensure styles are loaded
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -112,17 +113,17 @@ const ParkingResult = () => {
 
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-y-3 text-sm pt-4 border-t border-dashed border-border/50">
-                  <div className="text-muted-foreground">Vehicle</div>
-                  <div className="font-bold text-right">{vehicleNumber}</div>
+                  <div className="font-bold text-foreground">Vehicle</div>
+                  <div className="font-bold text-right text-foreground">{vehicleNumber}</div>
 
-                  <div className="text-muted-foreground">Ticket ID</div>
-                  <div className="font-mono text-right text-xs">{ticketId}</div>
+                  <div className="font-bold text-foreground">Ticket ID</div>
+                  <div className="font-bold font-mono text-right text-xs text-foreground">{ticketId}</div>
 
-                  <div className="text-muted-foreground">Date</div>
-                  <div className="text-right">{new Date().toLocaleDateString()}</div>
+                  <div className="font-bold text-foreground">Date</div>
+                  <div className="font-bold text-right text-foreground">{new Date().toLocaleDateString()}</div>
 
-                  <div className="text-muted-foreground">Entry Time</div>
-                  <div className="text-right">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                  <div className="font-bold text-foreground">Entry Time</div>
+                  <div className="font-bold text-right text-foreground">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 </div>
               </div>
             </div>
